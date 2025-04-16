@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Expense Tracker</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-wrapper">
+      <header class="heading">
+        <h1>Expense Tracker</h1>
+      </header>
+      <div class="app-container">
+        <!-- left side panel -->
+        <div class="left-panel">
+          <div class="card">
+            <form id="expense-form">
+              <div class="form-group1">
+                <label for="expense-name" class="form-label"
+                  >Expense Name</label
+                >
+                <input
+                  type="text"
+                  id="expense-name"
+                  class="form-input"
+                  placeholder="Enter expense name"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label for="expense-amount" class="form-label">Amount</label>
+                <input
+                  type="number"
+                  id="expense-amount"
+                  class="form-input"
+                  placeholder="₹0.00"
+                  required
+                />
+              </div>
+            </form>
+          </div>
+
+          <h2 class="category-heading">Select Category</h2>
+          <div class="category-container">
+            <div class="category-pill food">Food</div>
+            <div class="category-pill travel">Travel</div>
+            <div class="category-pill shopping">Shopping</div>
+            <div class="category-pill home">Home</div>
+            <div class="category-pill other">Other</div>
+
+            <div class="category-pill custom">Custom</div>
+          </div>
+          <h2 class="payment-heading">Payment Method</h2>
+          <div class="payment-options">
+            <div class="payment-option active">UPI</div>
+            <div class="payment-option">Cash</div>
+            <div class="payment-option">Card</div>
+          </div>
+          <button class="add-expense-btn">Add Expense</button>
+        </div>
+
+        <!-- Right side panel -->
+        <div class="right-panel">
+          <div class="expenses-header">
+            <h2>Recent Expenses</h2>
+            <select class="filter-dropdown">
+              <option>All Categories</option>
+              <option>Food</option>
+              <option>Travel</option>
+              <option>Shopping</option>
+              <option>Home</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="expenses-list"></div>
+          <div class="summary-card">
+            <div class="summary-label">Total Expenses</div>
+            <div class="summary-amount">₹0.00</div>
+          </div>
+          <button class="clear-all-btn">Clear All</button>
+        </div>
+        <div class="chart-container">
+          <h1>Expense Graph</h1>
+          <canvas id="expenseChart"></canvas>
+        </div>
+      </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="chart.js"></script>
+    <script src="popup.js"></script>
+    <script src="expenseTracker.js"></script>
+  </body>
+</html>
