@@ -106,13 +106,12 @@
       </div>
     </div>
     <script>
-      // Register service worker
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("/service-worker.js")
+            .register("/your-repo-name/service-worker.js") // Add repo name
             .then((registration) => {
-              console.log("ServiceWorker registration successful");
+              console.log("ServiceWorker registered for GitHub Pages");
             })
             .catch((err) => {
               console.log("ServiceWorker registration failed: ", err);

@@ -2,7 +2,7 @@
   "name": "Expense Tracker",
   "short_name": "Expenses",
   "description": "Track your expenses offline",
-  "start_url": "/",
+  "start_url": "/Expense_Tracker/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#6366f1",
