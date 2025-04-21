@@ -2,10 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0," />
     <meta name="theme-color" content="#6366f1" />
     <meta name="description" content="Track your expenses offline" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -43,7 +40,8 @@
                   type="text"
                   id="expense-name"
                   class="form-input"
-                  placeholder="Enter expense name"
+                  placeholder="Enter Exp_name"
+                  autocomplete="off"
                   required
                 />
               </div>
@@ -66,9 +64,9 @@
             <div class="category-pill travel">Travel</div>
             <div class="category-pill shopping">Shopping</div>
             <div class="category-pill home">Home</div>
-            <div class="category-pill other">Other</div>
+            <div class="category-pill clothing">Clothing</div>
 
-            <div class="category-pill custom">Custom</div>
+            <div class="category-pill custom">Custom ✎</div>
           </div>
           <h2 class="payment-heading">Payment Method</h2>
           <div class="payment-options">
@@ -82,14 +80,14 @@
         <!-- Right side panel -->
         <div class="right-panel">
           <div class="expenses-header">
-            <h2>Recent Expenses</h2>
+            <h2 id="recexp">Recent Expenses</h2>
             <select class="filter-dropdown">
               <option>All Categories</option>
               <option>Food</option>
               <option>Travel</option>
               <option>Shopping</option>
               <option>Home</option>
-              <option>Other</option>
+              <option>Clothing</option>
             </select>
           </div>
           <div class="expenses-list"></div>
@@ -100,7 +98,9 @@
           <button class="clear-all-btn">Clear All</button>
         </div>
         <div class="chart-container">
-          <h1>Expense Graph</h1>
+          <div class="chart-header">
+            <h1>Expense Graph</h1>
+          </div>
           <canvas id="expenseChart"></canvas>
         </div>
       </div>
@@ -109,7 +109,7 @@
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
           navigator.serviceWorker
-            .register("/your-repo-name/service-worker.js") // Add repo name
+            .register("/Expense_Tracker/service-worker.js") // Add repo name
             .then((registration) => {
               console.log("ServiceWorker registered for GitHub Pages");
             })

@@ -2,9 +2,17 @@ document.addEventListener("DOMContentLoaded", function () {
   // Make variables global
   window.expenses = JSON.parse(localStorage.getItem("expenses")) || [];
   window.currentFilter = "All Categories";
+  window.categoryColors = JSON.parse(
+    localStorage.getItem("categoryColors")
+  ) || {
+    food: "#6366f1",
+    travel: "#f59e0b",
+    shopping: "#10b981",
+    home: "#8b5cf6",
+    clothing: "#ef4444",
+  }; //For making it available for popup.js & chart.js
 
   // DOM elements
-  const expenseForm = document.getElementById("expense-form");
   const expenseName = document.getElementById("expense-name");
   const expenseAmount = document.getElementById("expense-amount");
   const addExpenseBtn = document.querySelector(".add-expense-btn");
@@ -30,6 +38,10 @@ document.addEventListener("DOMContentLoaded", function () {
     updateCategoryDropdown();
     categoryPills[0].classList.add("selected");
     window.expenseChart.init(getFilteredExpenses());
+    document.querySelectorAll(".category-pill").forEach((pill) => {
+      const category = pill.textContent.toLowerCase();
+      pill.style.backgroundColor = window.categoryColors[category] || "#64748b";
+    });
   }
 
   // Set up event listeners
@@ -61,17 +73,55 @@ document.addEventListener("DOMContentLoaded", function () {
     <button class="custom-category-add">Add</button>
   `;
 
-      document.querySelector(".category-container").after(customInput);
-      document.querySelector(".custom-category-text").focus();
+      // Inside setupEventListeners() in expenseTracker.js
+      document
+        .querySelector(".category-container")
+        .addEventListener("click", (e) => {
+          const pill = e.target.closest(".category-pill");
+          if (!pill) return;
 
-      document
-        .querySelector(".custom-category-add")
-        .addEventListener("click", addCustomCategory);
-      document
-        .querySelector(".custom-category-text")
-        .addEventListener("keypress", (e) => {
-          if (e.key === "Enter") {
-            addCustomCategory();
+          // DESELECT ALL PILLS FIRST
+          document.querySelectorAll(".category-pill").forEach((p) => {
+            p.classList.remove("selected");
+          });
+
+          // SELECT CLICKED PILL
+          pill.classList.add("selected");
+          selectedCategory = pill.textContent.toLowerCase();
+
+          // SPECIAL HANDLING FOR CUSTOM PILL
+          if (pill.classList.contains("custom")) {
+            // Check if custom input already exists
+            const existingInput = document.querySelector(
+              ".custom-category-input"
+            );
+            if (existingInput) return existingInput.remove();
+
+            // Create new input
+            const customInput = document.createElement("div");
+            customInput.className = "custom-category-input";
+            customInput.innerHTML = `
+      <input type="text" placeholder="Category name" class="custom-category-text">
+      <button class="custom-category-add">Add</button>
+    `;
+
+            // Insert after category container
+            document.querySelector(".category-container").after(customInput);
+
+            // Focus and set up event listeners
+            customInput.querySelector(".custom-category-text").focus();
+            customInput
+              .querySelector(".custom-category-add")
+              .addEventListener("click", addCustomCategory);
+            customInput
+              .querySelector(".custom-category-text")
+              .addEventListener("keypress", (e) => {
+                if (e.key === "Enter") addCustomCategory();
+              });
+          }
+          // FOR NON-CUSTOM PILLS: Remove existing custom input
+          else {
+            document.querySelector(".custom-category-input")?.remove();
           }
         });
 
@@ -81,41 +131,51 @@ document.addEventListener("DOMContentLoaded", function () {
           .value.trim();
         if (!customCategory) return;
 
-        // Create new category pill
+        const categoryKey = customCategory.toLowerCase();
+        const color = getColorForCategory(categoryKey);
+
         const newCategoryPill = document.createElement("div");
-        newCategoryPill.className = `category-pill custom-added`;
+        newCategoryPill.className = "category-pill";
         newCategoryPill.textContent = customCategory;
-        newCategoryPill.style.backgroundColor = getRandomColor();
+        newCategoryPill.style.backgroundColor = color;
 
         // Insert before the Custom pill
         const customPill = document.querySelector(".category-pill.custom");
         customPill.parentNode.insertBefore(newCategoryPill, customPill);
 
-        // Add click handler
+        // DESELECT ALL PILLS FIRST WHEN CLICKED
         newCategoryPill.addEventListener("click", function () {
-          categoryPills.forEach((p) => p.classList.remove("selected"));
+          // Remove 'selected' from ALL pills (including original and custom)
+          document.querySelectorAll(".category-pill").forEach((p) => {
+            p.classList.remove("selected");
+          });
           this.classList.add("selected");
           selectedCategory = customCategory.toLowerCase();
           document.querySelector(".custom-category-input")?.remove();
         });
-
         selectedCategory = customCategory.toLowerCase();
         customInput.remove();
         usedCategories.add(customCategory.toLowerCase());
         updateCategoryDropdown();
+        localStorage.setItem(
+          "categoryColors",
+          JSON.stringify(window.categoryColors)
+        );
+        window.expenseChart.render(window.expenses); // Immediate refresh
       }
     });
 
-    function getRandomColor(category) {
-      const categoryColors = {
-        food: "#6366f1",
-        travel: "#f59e0b",
-        shopping: "#10b981",
-        home: "#8b5cf6",
-        other: "#ef4444",
-        custom: "#64748b",
-      };
-      return categoryColors[category] || "#64748b"; // Default to custom color
+    function getColorForCategory(category) {
+      if (!window.categoryColors[category]) {
+        // Generate vibrant color (better than random hex)
+        const hue = Math.floor(Math.random() * 360);
+        window.categoryColors[category] = `hsl(${hue}, 70%, 60%)`;
+        localStorage.setItem(
+          "categoryColors",
+          JSON.stringify(window.categoryColors)
+        );
+      }
+      return window.categoryColors[category];
     }
 
     paymentOptions.forEach((option) => {
@@ -136,11 +196,16 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   // Expense functions
+  // Modify the addExpense() function:
   function addExpense(e) {
     e.preventDefault();
-    if (!expenseName.value || !expenseAmount.value)
-      return alert("Please fill in all fields");
 
+    // Validate inputs
+    if (!expenseName.value || !expenseAmount.value) {
+      return alert("Please fill in all fields");
+    }
+
+    // Create and save expense
     const expense = {
       name: expenseName.value,
       amount: parseFloat(expenseAmount.value),
@@ -150,14 +215,14 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 
     window.expenses.push(expense);
-    usedCategories.add(selectedCategory);
     window.saveExpenses();
-    renderExpenses();
-    updateCategoryDropdown();
-    window.expenseChart.render(getFilteredExpenses());
 
-    expenseName.value = "";
-    expenseAmount.value = "";
+    // RESET THE LEFT PANEL HERE
+    resetLeftPanel();
+
+    // Update UI
+    renderExpenses();
+    window.expenseChart.render(getFilteredExpenses());
   }
 
   function deleteExpense(index) {
@@ -190,6 +255,32 @@ document.addEventListener("DOMContentLoaded", function () {
   window.saveExpenses = function () {
     localStorage.setItem("expenses", JSON.stringify(window.expenses));
   };
+
+  function resetLeftPanel() {
+    // Clear input fields
+    expenseName.value = "";
+    expenseAmount.value = "";
+
+    // Resetting category selection to "Food"
+    document.querySelectorAll(".category-pill").forEach((pill) => {
+      pill.classList.remove("selected");
+    });
+    document.querySelector(".category-pill.food").classList.add("selected");
+    selectedCategory = "food";
+
+    // Reset payment method to "UPI" (first option)
+    document.querySelectorAll(".payment-option").forEach((option) => {
+      option.classList.remove("active");
+    });
+    document.querySelector(".payment-option").classList.add("active");
+    selectedPayment = "UPI";
+
+    // Remove any custom category input if present
+    document.querySelector(".custom-category-input")?.remove();
+
+    // Focus on name field for next entry
+    expenseName.focus();
+  }
 
   // Rendering functions
   window.renderExpenses = function () {
@@ -232,7 +323,7 @@ document.addEventListener("DOMContentLoaded", function () {
         "travel",
         "shopping",
         "home",
-        "other",
+        "clothing",
       ].includes(expense.category)
         ? expense.category
         : "custom";
@@ -250,8 +341,10 @@ document.addEventListener("DOMContentLoaded", function () {
           <div class="expense-payment">via ${expense.payment}</div>
         </div>
         <div class="expense-actions">
-          <button class="action-btn edit-btn">✏️</button>
-          <button class="action-btn delete-btn">🗑️</button>
+          <button class="action-btn edit-btn"><img src="images/edit.png" alt="edit" />
+</button>
+          <button class="action-btn delete-btn"><img src="images/delete.png" alt="delete" />
+</button>
         </div>
       `;
 

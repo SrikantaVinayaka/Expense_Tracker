@@ -1,6 +1,6 @@
 // Make expenses array and functions global
-window.expenses = JSON.parse(localStorage.getItem("expenses")) || [];
-window.saveExpenses = function () {
+expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+saveExpenses = function () {
   localStorage.setItem("expenses", JSON.stringify(expenses));
 };
 
@@ -14,7 +14,7 @@ function getFilteredExpenses() {
 }
 
 function getCategoryOptions(selected) {
-  const categories = ["food", "travel", "shopping", "home", "other"];
+  const categories = ["food", "travel", "shopping", "home", "clothing"];
   let optionsHTML = "";
 
   categories.forEach((category) => {
@@ -39,7 +39,7 @@ window.showEditPopup = function (index) {
   const popup = document.createElement("div");
   popup.className = "edit-popup";
   popup.innerHTML = `
-        <h3>Edit Expense</h3>
+        <h3 class="edit-exp">Edit Expense</h3>
         <div class="edit-form">
             <div class="form-group">
                 <label for="edit-name" class="form-label">Expense Name</label>

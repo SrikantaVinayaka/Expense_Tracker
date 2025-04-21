@@ -9,27 +9,31 @@ class ExpenseChart {
   }
 
   render(expenses) {
-    const categoryData = {};
-    const categoryColors = {
+    // 1. Get stored colors from localStorage (CRITICAL CHANGE)
+    const storedColors = JSON.parse(localStorage.getItem("categoryColors")) || {
+      // Default fallbacks if nothing in storage
       food: "#6366f1",
       travel: "#f59e0b",
       shopping: "#10b981",
       home: "#8b5cf6",
-      other: "#ef4444",
-      custom: "#64748b",
+      clothing: "#ef4444",
     };
 
+    // 2. Calculate category totals
+    const categoryData = {};
     expenses.forEach((expense) => {
-      categoryData[expense.category] =
-        (categoryData[expense.category] || 0) + expense.amount;
+      const categoryKey = expense.category.toLowerCase(); // Ensure case consistency
+      categoryData[categoryKey] =
+        (categoryData[categoryKey] || 0) + expense.amount;
     });
 
+    // 3. Prepare chart data with dynamic colors
     const categories = Object.keys(categoryData);
-    const amounts = Object.values(categoryData);
     const colors = categories.map(
-      (category) => categoryColors[category] || "#64748b"
+      (category) => storedColors[category] || "#64748b" // Fallback to grey if no color
     );
 
+    // 4. Destroy and recreate chart
     if (this.chart) this.chart.destroy();
 
     this.chart = new Chart(this.ctx, {
@@ -38,7 +42,7 @@ class ExpenseChart {
         labels: categories,
         datasets: [
           {
-            data: amounts,
+            data: Object.values(categoryData),
             backgroundColor: colors,
             borderWidth: 1,
           },
@@ -67,11 +71,14 @@ class ExpenseChart {
       },
     });
   }
-
-  destroy() {
-    if (this.chart) {
-      this.chart.destroy();
-      this.chart = null;
-    }
-  }
 }
+console.log(
+  "Stored colors:",
+  JSON.parse(localStorage.getItem("categoryColors"))
+);
+console.log(
+  "Generated colors:",
+  Object.keys(categoryData).map(
+    (category) => storedColors[category] || "#64748b"
+  )
+);
