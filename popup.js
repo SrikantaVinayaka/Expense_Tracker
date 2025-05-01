@@ -73,6 +73,26 @@ window.showEditPopup = function (index) {
                     }">Card</div>
                 </div>
             </div>
+            <div class="form-grp1">
+            <div class="form-group">
+                <label for="edit-date" class="form-label">Date</label>
+                <input type="date" id="edit-date" class="form-input" value="${
+                  new Date(expense.date).toISOString().split("T")[0]
+                }" required>
+            </div>
+            <div class="form-group">
+                <label for="edit-time" class="form-label">Time</label>
+                <input type="time" id="edit-time" class="form-input" 
+                value="${new Date(expense.date)
+                  .toLocaleTimeString("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })
+                  .replace("24:", "00:")}" required>
+            </div>
+            </div>
+
             <div class="popup-actions">
                 <button class="cancel-edit-btn">Cancel</button>
                 <button class="save-edit-btn" data-index="${index}">Save</button>
@@ -87,57 +107,66 @@ window.showEditPopup = function (index) {
 };
 
 function setupPopupEventListeners() {
-  const categoryOptions = document.querySelectorAll(".edit-category-option");
-  categoryOptions.forEach((option) => {
+  const saveEditBtn = document.querySelector(".save-edit-btn");
+  const cancelEditBtn = document.querySelector(".cancel-edit-btn");
+
+  saveEditBtn.addEventListener("click", function () {
+    const index = parseInt(this.dataset.index, 10);
+    const name = document.getElementById("edit-name").value.trim();
+    const amount = parseFloat(document.getElementById("edit-amount").value);
+    const category = document
+      .querySelector(".edit-category-option.selected")
+      .textContent.trim();
+    const payment = document
+      .querySelector(".edit-payment-option.active")
+      .textContent.trim();
+    const date = document.getElementById("edit-date").value;
+    const time = document.getElementById("edit-time").value;
+
+    if (!name || isNaN(amount) || !date || !time) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    // Update the expense
+    window.expenses[index] = {
+      ...window.expenses[index],
+      name,
+      amount,
+      category,
+      payment,
+      date: new Date(`${date}T${time}`).toISOString(),
+    };
+
+    // Save to localStorage and update UI
+    window.saveExpenses();
+    window.renderExpenses();
+    window.expenseChart.render(getFilteredExpenses());
+
+    // Close the popup
+    document.querySelector(".edit-popup-overlay").remove();
+  });
+
+  cancelEditBtn.addEventListener("click", function () {
+    document.querySelector(".edit-popup-overlay").remove();
+  });
+
+  // Add event listeners for category and payment selection
+  document.querySelectorAll(".edit-category-option").forEach((option) => {
     option.addEventListener("click", function () {
-      categoryOptions.forEach((o) => o.classList.remove("selected"));
+      document
+        .querySelectorAll(".edit-category-option")
+        .forEach((o) => o.classList.remove("selected"));
       this.classList.add("selected");
     });
   });
 
-  const paymentOptions = document.querySelectorAll(".edit-payment-option");
-  paymentOptions.forEach((option) => {
+  document.querySelectorAll(".edit-payment-option").forEach((option) => {
     option.addEventListener("click", function () {
-      paymentOptions.forEach((o) => o.classList.remove("active"));
+      document
+        .querySelectorAll(".edit-payment-option")
+        .forEach((o) => o.classList.remove("active"));
       this.classList.add("active");
     });
   });
-
-  document
-    .querySelector(".cancel-edit-btn")
-    .addEventListener("click", function () {
-      document.querySelector(".edit-popup-overlay").remove();
-    });
-
-  document
-    .querySelector(".save-edit-btn")
-    .addEventListener("click", function () {
-      const index = parseInt(this.dataset.index);
-      const name = document.getElementById("edit-name").value;
-      const amount = parseFloat(document.getElementById("edit-amount").value);
-      const category = document
-        .querySelector(".edit-category-option.selected")
-        .textContent.toLowerCase();
-      const payment = document.querySelector(
-        ".edit-payment-option.active"
-      ).textContent;
-
-      if (!name || !amount) {
-        alert("Please fill in all fields");
-        return;
-      }
-
-      window.expenses[index] = {
-        ...window.expenses[index],
-        name,
-        amount,
-        category,
-        payment,
-      };
-
-      window.saveExpenses();
-      window.renderExpenses();
-      window.expenseChart.render(getFilteredExpenses());
-      document.querySelector(".edit-popup-overlay").remove();
-    });
 }

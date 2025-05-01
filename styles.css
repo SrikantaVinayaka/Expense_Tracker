@@ -330,6 +330,28 @@ h1:hover {
   cursor: pointer;
 }
 
+.time-sort-dropdown {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 10px;
+  background-color: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  margin: -5px 10px 15px 10px;
+}
+
+.time-filter-dropdown,
+.sort-filter-dropdown {
+  padding: 5px 10px;
+  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  background-color: white;
+  color: #64748b;
+  font-size: 14px;
+  cursor: pointer;
+}
+
 /* Expense item */
 .expense-item {
   background-color: white;
@@ -650,6 +672,17 @@ h1:hover {
 .save-edit-btn:hover {
   background-color: #5254cc;
   box-shadow: 0 4px 6px rgba(99, 102, 241, 0.4);
+}
+
+.form-grp1 {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+}
+
+#edit-date,
+#edit-time {
+  width: 100%;
 }
 
 /* Mobile responsiveness */

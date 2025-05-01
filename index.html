@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0," />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#6366f1" />
     <meta name="description" content="Track your expenses offline" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -74,13 +74,16 @@
             <div class="payment-option">Cash</div>
             <div class="payment-option">Card</div>
           </div>
-          <button class="add-expense-btn">Add Expense</button>
+          <button class="add-expense-btn" aria-label="Add ecpense">
+            Add Expense
+          </button>
         </div>
 
         <!-- Right side panel -->
         <div class="right-panel">
           <div class="expenses-header">
             <h2 id="recexp">Recent Expenses</h2>
+
             <select class="filter-dropdown">
               <option>All Categories</option>
               <option>Food</option>
@@ -88,6 +91,23 @@
               <option>Shopping</option>
               <option>Home</option>
               <option>Clothing</option>
+            </select>
+          </div>
+          <div class="time-sort-dropdown">
+            <select class="time-filter-dropdown">
+              <option value="all-time">All Time</option>
+              <option value="week">Last Week</option>
+              <option value="month">Last Month</option>
+              <option value="3-months">Last 3 Months</option>
+              <option value="6-months">Last 6 Months</option>
+              <option value="year">Last Year</option>
+            </select>
+            <select class="sort-filter-dropdown">
+              <!-- <option value="" disabled selected>Sort by:</option> -->
+              <option value="date-desc">Date (Newest to Oldest)</option>
+              <option value="date-asc">Date (Oldest to Newest)</option>
+              <option value="price-desc">Price (High to Low)</option>
+              <option value="price-asc">Price (Low to High)</option>
             </select>
           </div>
           <div class="expenses-list"></div>
@@ -119,6 +139,7 @@
         });
       }
     </script>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="chart.js"></script>
     <script src="popup.js"></script>

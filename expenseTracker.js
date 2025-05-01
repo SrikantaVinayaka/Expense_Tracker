@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
     shopping: "#10b981",
     home: "#8b5cf6",
     clothing: "#ef4444",
-  }; //For making it available for popup.js & chart.js
+  };
 
   // DOM elements
   const expenseName = document.getElementById("expense-name");
@@ -20,9 +20,10 @@ document.addEventListener("DOMContentLoaded", function () {
   const paymentOptions = document.querySelectorAll(".payment-option");
   const clearAllBtn = document.querySelector(".clear-all-btn");
   const filterDropdown = document.querySelector(".filter-dropdown");
-  const customCategoryPill = document.querySelector(".category-pill.custom");
   const expensesList = document.querySelector(".expenses-list");
   const ctx = document.getElementById("expenseChart").getContext("2d");
+  const timeFilterDropdown = document.querySelector(".time-filter-dropdown");
+  const sortFilterDropdown = document.querySelector(".sort-filter-dropdown");
 
   // State variables
   let selectedCategory = "food";
@@ -46,138 +47,31 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Set up event listeners
   function setupEventListeners() {
-    categoryPills.forEach((pill) => {
-      if (!pill.classList.contains("custom")) {
-        pill.addEventListener("click", function () {
-          categoryPills.forEach((p) => p.classList.remove("selected"));
-          this.classList.add("selected");
-          selectedCategory = this.textContent.toLowerCase();
+    // Handle category selection
+    document
+      .querySelector(".category-container")
+      .addEventListener("click", (e) => {
+        const pill = e.target.closest(".category-pill");
+        if (!pill) return;
+
+        // Deselect all pills
+        document
+          .querySelectorAll(".category-pill")
+          .forEach((p) => p.classList.remove("selected"));
+
+        // Select clicked pill
+        pill.classList.add("selected");
+        selectedCategory = pill.textContent.toLowerCase();
+
+        // Handle custom category
+        if (pill.classList.contains("custom")) {
+          handleCustomCategory();
+        } else {
           document.querySelector(".custom-category-input")?.remove();
-        });
-      }
-    });
+        }
+      });
 
-    customCategoryPill.addEventListener("click", function () {
-      const existingCustomInput = document.querySelector(
-        ".custom-category-input"
-      );
-      if (existingCustomInput) return existingCustomInput.remove();
-
-      categoryPills.forEach((p) => p.classList.remove("selected"));
-      this.classList.add("selected");
-
-      const customInput = document.createElement("div");
-      customInput.className = "custom-category-input";
-      customInput.innerHTML = `
-    <input type="text" placeholder="Category name" class="custom-category-text">
-    <button class="custom-category-add">Add</button>
-  `;
-
-      // Inside setupEventListeners() in expenseTracker.js
-      document
-        .querySelector(".category-container")
-        .addEventListener("click", (e) => {
-          const pill = e.target.closest(".category-pill");
-          if (!pill) return;
-
-          // DESELECT ALL PILLS FIRST
-          document.querySelectorAll(".category-pill").forEach((p) => {
-            p.classList.remove("selected");
-          });
-
-          // SELECT CLICKED PILL
-          pill.classList.add("selected");
-          selectedCategory = pill.textContent.toLowerCase();
-
-          // SPECIAL HANDLING FOR CUSTOM PILL
-          if (pill.classList.contains("custom")) {
-            // Check if custom input already exists
-            const existingInput = document.querySelector(
-              ".custom-category-input"
-            );
-            if (existingInput) return existingInput.remove();
-
-            // Create new input
-            const customInput = document.createElement("div");
-            customInput.className = "custom-category-input";
-            customInput.innerHTML = `
-      <input type="text" placeholder="Category name" class="custom-category-text">
-      <button class="custom-category-add">Add</button>
-    `;
-
-            // Insert after category container
-            document.querySelector(".category-container").after(customInput);
-
-            // Focus and set up event listeners
-            customInput.querySelector(".custom-category-text").focus();
-            customInput
-              .querySelector(".custom-category-add")
-              .addEventListener("click", addCustomCategory);
-            customInput
-              .querySelector(".custom-category-text")
-              .addEventListener("keypress", (e) => {
-                if (e.key === "Enter") addCustomCategory();
-              });
-          }
-          // FOR NON-CUSTOM PILLS: Remove existing custom input
-          else {
-            document.querySelector(".custom-category-input")?.remove();
-          }
-        });
-
-      function addCustomCategory() {
-        const customCategory = document
-          .querySelector(".custom-category-text")
-          .value.trim();
-        if (!customCategory) return;
-
-        const categoryKey = customCategory.toLowerCase();
-        const color = getColorForCategory(categoryKey);
-
-        const newCategoryPill = document.createElement("div");
-        newCategoryPill.className = "category-pill";
-        newCategoryPill.textContent = customCategory;
-        newCategoryPill.style.backgroundColor = color;
-
-        // Insert before the Custom pill
-        const customPill = document.querySelector(".category-pill.custom");
-        customPill.parentNode.insertBefore(newCategoryPill, customPill);
-
-        // DESELECT ALL PILLS FIRST WHEN CLICKED
-        newCategoryPill.addEventListener("click", function () {
-          // Remove 'selected' from ALL pills (including original and custom)
-          document.querySelectorAll(".category-pill").forEach((p) => {
-            p.classList.remove("selected");
-          });
-          this.classList.add("selected");
-          selectedCategory = customCategory.toLowerCase();
-          document.querySelector(".custom-category-input")?.remove();
-        });
-        selectedCategory = customCategory.toLowerCase();
-        customInput.remove();
-        usedCategories.add(customCategory.toLowerCase());
-        updateCategoryDropdown();
-        localStorage.setItem(
-          "categoryColors",
-          JSON.stringify(window.categoryColors)
-        );
-        window.expenseChart.render(window.expenses); // Immediate refresh
-      }
-    });
-
-    function getColorForCategory(category) {
-      if (!window.categoryColors[category]) {
-        // Generate vibrant color (better than random hex)
-        const hue = Math.floor(Math.random() * 360);
-        window.categoryColors[category] = `hsl(${hue}, 70%, 60%)`;
-        localStorage.setItem(
-          "categoryColors",
-          JSON.stringify(window.categoryColors)
-        );
-      }
-      return window.categoryColors[category];
-    }
-
+    // Payment method selection
     paymentOptions.forEach((option) => {
       option.addEventListener("click", function () {
         paymentOptions.forEach((o) => o.classList.remove("active"));
@@ -186,6 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     });
 
+    // Other event listeners
     addExpenseBtn.addEventListener("click", addExpense);
     clearAllBtn.addEventListener("click", clearAllExpenses);
     filterDropdown.addEventListener("change", function () {
@@ -193,16 +88,114 @@ document.addEventListener("DOMContentLoaded", function () {
       renderExpenses();
       window.expenseChart.render(getFilteredExpenses());
     });
+    timeFilterDropdown.addEventListener("change", function () {
+      renderExpenses();
+      window.expenseChart.render(getFilteredExpenses());
+    });
+    sortFilterDropdown.addEventListener("change", renderExpenses);
   }
 
+  // Handle custom category creation
+  function handleCustomCategory() {
+    const existingInput = document.querySelector(".custom-category-input");
+    if (existingInput) return existingInput.remove();
+
+    const customInput = document.createElement("div");
+    customInput.className = "custom-category-input";
+    customInput.innerHTML = `
+      <input type="text" placeholder="Category name" class="custom-category-text">
+      <button class="custom-category-add">Add</button>
+    `;
+
+    document.querySelector(".category-container").after(customInput);
+
+    // Focus input field
+    customInput.querySelector(".custom-category-text").focus();
+
+    // Set up event listeners for the Add button
+    customInput
+      .querySelector(".custom-category-add")
+      .addEventListener("click", addCustomCategory);
+    customInput
+      .querySelector(".custom-category-text")
+      .addEventListener("keypress", (e) => {
+        if (e.key === "Enter") addCustomCategory();
+      });
+  }
+
+  // Add custom category
+  function addCustomCategory() {
+    const customCategory = document
+      .querySelector(".custom-category-text")
+      .value.trim()
+      .toLowerCase();
+    if (!customCategory) return;
+
+    const categoryKey = customCategory.toLowerCase();
+    const color = getColorForCategory(categoryKey);
+
+    // Create new pill
+    const newCategoryPill = document.createElement("div");
+    newCategoryPill.className = "category-pill";
+    newCategoryPill.textContent = customCategory;
+    newCategoryPill.style.backgroundColor = color;
+
+    // Insert before custom pill
+    const customPill = document.querySelector(".category-pill.custom");
+    customPill.parentNode.insertBefore(newCategoryPill, customPill);
+
+    // Set up click handler
+    newCategoryPill.addEventListener("click", function () {
+      deselectAllPills();
+      this.classList.add("selected");
+      selectedCategory = categoryKey;
+      document.querySelector(".custom-category-input")?.remove();
+    });
+
+    // Update state
+    selectedCategory = categoryKey;
+    usedCategories.add(categoryKey);
+    updateCategoryDropdown();
+    localStorage.setItem(
+      "categoryColors",
+      JSON.stringify(window.categoryColors)
+    );
+    document.querySelector(".custom-category-input").remove();
+    window.expenseChart.render(window.expenses);
+  }
+
+  // Helper function to deselect all pills
+  function deselectAllPills() {
+    document
+      .querySelectorAll(".category-pill")
+      .forEach((p) => p.classList.remove("selected"));
+  }
+
+  // Get color for category
+  function getColorForCategory(category) {
+    if (!window.categoryColors[category]) {
+      const hue = Math.floor(Math.random() * 360);
+      window.categoryColors[category] = `hsl(${hue}, 70%, 60%)`;
+      localStorage.setItem(
+        "categoryColors",
+        JSON.stringify(window.categoryColors)
+      );
+    }
+    return window.categoryColors[category];
+  }
   // Expense functions
   // Modify the addExpense() function:
   function addExpense(e) {
     e.preventDefault();
 
-    // Validate inputs
+    // Validate inputs & amt
     if (!expenseName.value || !expenseAmount.value) {
       return alert("Please fill in all fields");
+    }
+
+    if (expenseAmount.value <= 0) {
+      alert("Amount must be greater than 0");
+      return;
     }
 
     // Create and save expense
@@ -262,9 +255,8 @@ document.addEventListener("DOMContentLoaded", function () {
     expenseAmount.value = "";
 
     // Resetting category selection to "Food"
-    document.querySelectorAll(".category-pill").forEach((pill) => {
-      pill.classList.remove("selected");
-    });
+    deselectAllPills();
+
     document.querySelector(".category-pill.food").classList.add("selected");
     selectedCategory = "food";
 
@@ -295,8 +287,6 @@ document.addEventListener("DOMContentLoaded", function () {
       ".summary-amount"
     ).textContent = `₹${filteredTotal.toFixed(2)}`;
 
-    filteredExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
-
     if (filteredExpenses.length === 0) {
       const noExpensesMsg = document.createElement("div");
       noExpensesMsg.className = "no-expenses-message";
@@ -318,14 +308,9 @@ document.addEventListener("DOMContentLoaded", function () {
       const expenseDate = new Date(expense.date);
       const dateText = getFormattedDate(expenseDate);
       const formattedTime = getFormattedTime(expenseDate);
-      const categoryClass = [
-        "food",
-        "travel",
-        "shopping",
-        "home",
-        "clothing",
-      ].includes(expense.category)
-        ? expense.category
+      const categoryClass = ["food", "travel", "shopping", "home", "clothing"]
+        ? // .includes(expense.category)
+          expense.category
         : "custom";
 
       expenseItem.innerHTML = `
@@ -341,10 +326,8 @@ document.addEventListener("DOMContentLoaded", function () {
           <div class="expense-payment">via ${expense.payment}</div>
         </div>
         <div class="expense-actions">
-          <button class="action-btn edit-btn"><img src="images/edit.png" alt="edit" />
-</button>
-          <button class="action-btn delete-btn"><img src="images/delete.png" alt="delete" />
-</button>
+          <button class="action-btn edit-btn"><img src="images/edit.png" alt="edit" /></button>
+          <button class="action-btn delete-btn"><img src="images/delete.png" alt="delete" /></button>
         </div>
       `;
 
@@ -359,13 +342,76 @@ document.addEventListener("DOMContentLoaded", function () {
   };
 
   function getFilteredExpenses() {
-    return window.currentFilter === "All Categories"
-      ? window.expenses
-      : window.expenses.filter(
-          (expense) =>
-            expense.category.toLowerCase() ===
-            window.currentFilter.toLowerCase()
-        );
+    const now = new Date();
+    const timeFilter = timeFilterDropdown.value;
+    const sortOption = sortFilterDropdown.value;
+
+    // Step 1: Filter by time
+    let filteredExpenses = [...window.expenses];
+    if (timeFilter !== "all-time") {
+      let startDate = new Date();
+      let endDate = new Date();
+
+      switch (timeFilter) {
+        case "week": // Last complete week (Mon-Sun)
+          const today = new now();
+          const dayOfWeek = today.getDay(); // 0 (Sun) to 6 (Sat)
+          const diff = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Days since Monday
+          startDate = new Date(today.setDate(today.getDate() - diff - 7)); // Previous Monday
+          endDate = new Date(startDate);
+          endDate.setDate(startDate.getDate() + 6); // Following Sunday
+          break;
+
+        case "month": // Last complete month
+          startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+
+        case "3-months": // Last 3 complete months
+          startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+
+        case "6-months": // Last 6 complete months
+          startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+          endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+          break;
+
+        case "year": // Last complete year
+          startDate = new Date(now.getFullYear() - 1, 0, 1);
+          endDate = new Date(now.getFullYear() - 1, 11, 31);
+          break;
+      }
+
+      // Set time components to cover entire days
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+
+      filteredExpenses = filteredExpenses.filter((expense) => {
+        const expenseDate = new Date(expense.date);
+        return expenseDate >= startDate && expenseDate <= endDate;
+      });
+    }
+    // Step 2: Filter by category
+    if (window.currentFilter !== "All Categories") {
+      filteredExpenses = filteredExpenses.filter(
+        (expense) =>
+          expense.category.toLowerCase() === window.currentFilter.toLowerCase()
+      );
+    }
+
+    // Step 3: Sort by selected option
+    if (sortOption === "date-desc") {
+      filteredExpenses.sort((a, b) => new Date(b.date) - new Date(a.date));
+    } else if (sortOption === "date-asc") {
+      filteredExpenses.sort((a, b) => new Date(a.date) - new Date(b.date));
+    } else if (sortOption === "price-desc") {
+      filteredExpenses.sort((a, b) => b.amount - a.amount);
+    } else if (sortOption === "price-asc") {
+      filteredExpenses.sort((a, b) => a.amount - b.amount);
+    }
+
+    return filteredExpenses;
   }
 
   // Helper functions

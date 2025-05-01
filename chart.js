@@ -72,13 +72,13 @@ class ExpenseChart {
     });
   }
 }
-console.log(
-  "Stored colors:",
-  JSON.parse(localStorage.getItem("categoryColors"))
-);
-console.log(
-  "Generated colors:",
-  Object.keys(categoryData).map(
-    (category) => storedColors[category] || "#64748b"
-  )
-);
+// console.log(
+//   "Stored colors:",
+//   JSON.parse(localStorage.getItem("categoryColors"))
+// );
+// console.log(
+//   "Generated colors:",
+//   Object.keys(categoryData).map(
+//     (category) => storedColors[category] || "#64748b"
+//   )
+// );
